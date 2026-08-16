@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Font Arab DI-BUNDLE LOKAL (bukan CDN) — kartu ayat harus utuh saat offline.
+ * Keduanya ikut precache service worker, bukan runtime cache.
+ */
+@font-face {
+  font-family: 'Amiri Quran';
+  src: url('/fonts/AmiriQuran-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+@font-face {
+  font-family: 'Scheherazade New';
+  src: url('/fonts/ScheherazadeNew-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-paper text-ink antialiased;
+    overscroll-behavior-y: none;
+  }
+
+  /* Font-size 16px pada field mencegah iOS Safari auto-zoom saat fokus. */
+  textarea,
+  input {
+    font-size: 16px;
+  }
+
+  textarea {
+    @apply bg-transparent;
+    field-sizing: content;
+  }
+
+  button {
+    touch-action: manipulation;
+  }
+}
+
+@layer components {
+  .arabic {
+    font-family: theme('fontFamily.quran');
+    font-size: 1.6rem;
+    line-height: 2.4;
+    letter-spacing: 0;
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded px-1 text-[0.82em] font-medium leading-normal;
+  }
+
+  .chip-tag {
+    @apply bg-amber-100 text-amber-900;
+  }
+
+  .chip-category {
+    @apply bg-accent-soft text-accent-ink;
+  }
+
+  /* Kategori WARISAN sengaja redup — supaya asalnya langsung kelihatan. */
+  .chip-inherited {
+    @apply border border-dashed border-accent/40 bg-transparent text-accent/70;
+  }
+
+  .chip-link {
+    @apply bg-sky-100 text-sky-900 underline decoration-sky-300 underline-offset-2;
+  }
+
+  .tap-target {
+    @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center;
+  }
+}
+
+/* Toolbar mobile duduk tepat di atas keyboard; offset-nya diisi JS lewat
+   VisualViewport API (lihat useKeyboardInset). */
+.keyboard-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: translateY(calc(-1 * var(--keyboard-inset, 0px)));
+  padding-bottom: env(safe-area-inset-bottom);
+  transition: transform 120ms ease-out;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}

@@ -1,0 +1,800 @@
+[
+  {
+    "surah": 1,
+    "name_arabic": "الفاتحة",
+    "name_latin": "Al-Fatihah",
+    "name_id": "Pembukaan",
+    "ayah_count": 7
+  },
+  {
+    "surah": 2,
+    "name_arabic": "البقرة",
+    "name_latin": "Al-Baqarah",
+    "name_id": "Sapi",
+    "ayah_count": 286
+  },
+  {
+    "surah": 3,
+    "name_arabic": "اٰل عمران",
+    "name_latin": "Ali 'Imran",
+    "name_id": "Keluarga Imran",
+    "ayah_count": 200
+  },
+  {
+    "surah": 4,
+    "name_arabic": "النساۤء",
+    "name_latin": "An-Nisa'",
+    "name_id": "Wanita",
+    "ayah_count": 176
+  },
+  {
+    "surah": 5,
+    "name_arabic": "الماۤئدة",
+    "name_latin": "Al-Ma'idah",
+    "name_id": "Hidangan",
+    "ayah_count": 120
+  },
+  {
+    "surah": 6,
+    "name_arabic": "الانعام",
+    "name_latin": "Al-An'am",
+    "name_id": "Binatang Ternak",
+    "ayah_count": 165
+  },
+  {
+    "surah": 7,
+    "name_arabic": "الاعراف",
+    "name_latin": "Al-A'raf",
+    "name_id": "Tempat Tertinggi",
+    "ayah_count": 206
+  },
+  {
+    "surah": 8,
+    "name_arabic": "الانفال",
+    "name_latin": "Al-Anfal",
+    "name_id": "Rampasan Perang",
+    "ayah_count": 75
+  },
+  {
+    "surah": 9,
+    "name_arabic": "التوبة",
+    "name_latin": "At-Taubah",
+    "name_id": "Pengampunan",
+    "ayah_count": 129
+  },
+  {
+    "surah": 10,
+    "name_arabic": "يونس",
+    "name_latin": "Yunus",
+    "name_id": "Yunus",
+    "ayah_count": 109
+  },
+  {
+    "surah": 11,
+    "name_arabic": "هود",
+    "name_latin": "Hud",
+    "name_id": "Hud",
+    "ayah_count": 123
+  },
+  {
+    "surah": 12,
+    "name_arabic": "يوسف",
+    "name_latin": "Yusuf",
+    "name_id": "Yusuf",
+    "ayah_count": 111
+  },
+  {
+    "surah": 13,
+    "name_arabic": "الرّعد",
+    "name_latin": "Ar-Ra'd",
+    "name_id": "Guruh",
+    "ayah_count": 43
+  },
+  {
+    "surah": 14,
+    "name_arabic": "ابرٰهيم",
+    "name_latin": "Ibrahim",
+    "name_id": "Ibrahim",
+    "ayah_count": 52
+  },
+  {
+    "surah": 15,
+    "name_arabic": "الحجر",
+    "name_latin": "Al-Hijr",
+    "name_id": "Hijr",
+    "ayah_count": 99
+  },
+  {
+    "surah": 16,
+    "name_arabic": "النحل",
+    "name_latin": "An-Nahl",
+    "name_id": "Lebah",
+    "ayah_count": 128
+  },
+  {
+    "surah": 17,
+    "name_arabic": "الاسراۤء",
+    "name_latin": "Al-Isra'",
+    "name_id": "Memperjalankan Malam Hari",
+    "ayah_count": 111
+  },
+  {
+    "surah": 18,
+    "name_arabic": "الكهف",
+    "name_latin": "Al-Kahf",
+    "name_id": "Goa",
+    "ayah_count": 110
+  },
+  {
+    "surah": 19,
+    "name_arabic": "مريم",
+    "name_latin": "Maryam",
+    "name_id": "Maryam",
+    "ayah_count": 98
+  },
+  {
+    "surah": 20,
+    "name_arabic": "طٰهٰ",
+    "name_latin": "Taha",
+    "name_id": "Taha",
+    "ayah_count": 135
+  },
+  {
+    "surah": 21,
+    "name_arabic": "الانبياۤء",
+    "name_latin": "Al-Anbiya'",
+    "name_id": "Para Nabi",
+    "ayah_count": 112
+  },
+  {
+    "surah": 22,
+    "name_arabic": "الحج",
+    "name_latin": "Al-Hajj",
+    "name_id": "Haji",
+    "ayah_count": 78
+  },
+  {
+    "surah": 23,
+    "name_arabic": "المؤمنون",
+    "name_latin": "Al-Mu'minun",
+    "name_id": "Orang-Orang Mukmin",
+    "ayah_count": 118
+  },
+  {
+    "surah": 24,
+    "name_arabic": "النّور",
+    "name_latin": "An-Nur",
+    "name_id": "Cahaya",
+    "ayah_count": 64
+  },
+  {
+    "surah": 25,
+    "name_arabic": "الفرقان",
+    "name_latin": "Al-Furqan",
+    "name_id": "Pembeda",
+    "ayah_count": 77
+  },
+  {
+    "surah": 26,
+    "name_arabic": "الشعراۤء",
+    "name_latin": "Asy-Syu'ara'",
+    "name_id": "Para Penyair",
+    "ayah_count": 227
+  },
+  {
+    "surah": 27,
+    "name_arabic": "النمل",
+    "name_latin": "An-Naml",
+    "name_id": "Semut-semut",
+    "ayah_count": 93
+  },
+  {
+    "surah": 28,
+    "name_arabic": "القصص",
+    "name_latin": "Al-Qasas",
+    "name_id": "Kisah-Kisah",
+    "ayah_count": 88
+  },
+  {
+    "surah": 29,
+    "name_arabic": "العنكبوت",
+    "name_latin": "Al-'Ankabut",
+    "name_id": "Laba-Laba",
+    "ayah_count": 69
+  },
+  {
+    "surah": 30,
+    "name_arabic": "الرّوم",
+    "name_latin": "Ar-Rum",
+    "name_id": "Romawi",
+    "ayah_count": 60
+  },
+  {
+    "surah": 31,
+    "name_arabic": "لقمٰن",
+    "name_latin": "Luqman",
+    "name_id": "Luqman",
+    "ayah_count": 34
+  },
+  {
+    "surah": 32,
+    "name_arabic": "السّجدة",
+    "name_latin": "As-Sajdah",
+    "name_id": "Sajdah",
+    "ayah_count": 30
+  },
+  {
+    "surah": 33,
+    "name_arabic": "الاحزاب",
+    "name_latin": "Al-Ahzab",
+    "name_id": "Golongan Yang Bersekutu",
+    "ayah_count": 73
+  },
+  {
+    "surah": 34,
+    "name_arabic": "سبأ",
+    "name_latin": "Saba'",
+    "name_id": "Saba'",
+    "ayah_count": 54
+  },
+  {
+    "surah": 35,
+    "name_arabic": "فاطر",
+    "name_latin": "Fatir",
+    "name_id": "Maha Pencipta",
+    "ayah_count": 45
+  },
+  {
+    "surah": 36,
+    "name_arabic": "يٰسۤ",
+    "name_latin": "Yasin",
+    "name_id": "Yasin",
+    "ayah_count": 83
+  },
+  {
+    "surah": 37,
+    "name_arabic": "الصّٰۤفّٰت",
+    "name_latin": "As-Saffat",
+    "name_id": "Barisan-Barisan",
+    "ayah_count": 182
+  },
+  {
+    "surah": 38,
+    "name_arabic": "ص",
+    "name_latin": "Sad",
+    "name_id": "Sad",
+    "ayah_count": 88
+  },
+  {
+    "surah": 39,
+    "name_arabic": "الزمر",
+    "name_latin": "Az-Zumar",
+    "name_id": "Rombongan",
+    "ayah_count": 75
+  },
+  {
+    "surah": 40,
+    "name_arabic": "غافر",
+    "name_latin": "Gafir",
+    "name_id": "Maha Pengampun",
+    "ayah_count": 85
+  },
+  {
+    "surah": 41,
+    "name_arabic": "فصّلت",
+    "name_latin": "Fussilat",
+    "name_id": "Yang Dijelaskan",
+    "ayah_count": 54
+  },
+  {
+    "surah": 42,
+    "name_arabic": "الشورى",
+    "name_latin": "Asy-Syura",
+    "name_id": "Musyawarah",
+    "ayah_count": 53
+  },
+  {
+    "surah": 43,
+    "name_arabic": "الزخرف",
+    "name_latin": "Az-Zukhruf",
+    "name_id": "Perhiasan",
+    "ayah_count": 89
+  },
+  {
+    "surah": 44,
+    "name_arabic": "الدخان",
+    "name_latin": "Ad-Dukhan",
+    "name_id": "Kabut",
+    "ayah_count": 59
+  },
+  {
+    "surah": 45,
+    "name_arabic": "الجاثية",
+    "name_latin": "Al-Jasiyah",
+    "name_id": "Berlutut",
+    "ayah_count": 37
+  },
+  {
+    "surah": 46,
+    "name_arabic": "الاحقاف",
+    "name_latin": "Al-Ahqaf",
+    "name_id": "Bukit Pasir",
+    "ayah_count": 35
+  },
+  {
+    "surah": 47,
+    "name_arabic": "محمّد",
+    "name_latin": "Muhammad",
+    "name_id": "Muhammad",
+    "ayah_count": 38
+  },
+  {
+    "surah": 48,
+    "name_arabic": "الفتح",
+    "name_latin": "Al-Fath",
+    "name_id": "Kemenangan",
+    "ayah_count": 29
+  },
+  {
+    "surah": 49,
+    "name_arabic": "الحجرٰت",
+    "name_latin": "Al-Hujurat",
+    "name_id": "Kamar-Kamar",
+    "ayah_count": 18
+  },
+  {
+    "surah": 50,
+    "name_arabic": "ق",
+    "name_latin": "Qaf",
+    "name_id": "Qaf",
+    "ayah_count": 45
+  },
+  {
+    "surah": 51,
+    "name_arabic": "الذّٰريٰت",
+    "name_latin": "Az-Zariyat",
+    "name_id": "Angin yang Menerbangkan",
+    "ayah_count": 60
+  },
+  {
+    "surah": 52,
+    "name_arabic": "الطور",
+    "name_latin": "At-Tur",
+    "name_id": "Bukit Tursina",
+    "ayah_count": 49
+  },
+  {
+    "surah": 53,
+    "name_arabic": "النجم",
+    "name_latin": "An-Najm",
+    "name_id": "Bintang",
+    "ayah_count": 62
+  },
+  {
+    "surah": 54,
+    "name_arabic": "القمر",
+    "name_latin": "Al-Qamar",
+    "name_id": "Bulan",
+    "ayah_count": 55
+  },
+  {
+    "surah": 55,
+    "name_arabic": "الرحمن",
+    "name_latin": "Ar-Rahman",
+    "name_id": "Maha Pengasih",
+    "ayah_count": 78
+  },
+  {
+    "surah": 56,
+    "name_arabic": "الواقعة",
+    "name_latin": "Al-Waqi'ah",
+    "name_id": "Hari Kiamat",
+    "ayah_count": 96
+  },
+  {
+    "surah": 57,
+    "name_arabic": "الحديد",
+    "name_latin": "Al-Hadid",
+    "name_id": "Besi",
+    "ayah_count": 29
+  },
+  {
+    "surah": 58,
+    "name_arabic": "المجادلة",
+    "name_latin": "Al-Mujadalah",
+    "name_id": "Gugatan",
+    "ayah_count": 22
+  },
+  {
+    "surah": 59,
+    "name_arabic": "الحشر",
+    "name_latin": "Al-Hasyr",
+    "name_id": "Pengusiran",
+    "ayah_count": 24
+  },
+  {
+    "surah": 60,
+    "name_arabic": "الممتحنة",
+    "name_latin": "Al-Mumtahanah",
+    "name_id": "Wanita Yang Diuji",
+    "ayah_count": 13
+  },
+  {
+    "surah": 61,
+    "name_arabic": "الصّفّ",
+    "name_latin": "As-Saff",
+    "name_id": "Barisan",
+    "ayah_count": 14
+  },
+  {
+    "surah": 62,
+    "name_arabic": "الجمعة",
+    "name_latin": "Al-Jumu'ah",
+    "name_id": "Jumat",
+    "ayah_count": 11
+  },
+  {
+    "surah": 63,
+    "name_arabic": "المنٰفقون",
+    "name_latin": "Al-Munafiqun",
+    "name_id": "Orang-Orang Munafik",
+    "ayah_count": 11
+  },
+  {
+    "surah": 64,
+    "name_arabic": "التغابن",
+    "name_latin": "At-Tagabun",
+    "name_id": "Pengungkapan Kesalahan",
+    "ayah_count": 18
+  },
+  {
+    "surah": 65,
+    "name_arabic": "الطلاق",
+    "name_latin": "At-Talaq",
+    "name_id": "Talak",
+    "ayah_count": 12
+  },
+  {
+    "surah": 66,
+    "name_arabic": "التحريم",
+    "name_latin": "At-Tahrim",
+    "name_id": "Pengharaman",
+    "ayah_count": 12
+  },
+  {
+    "surah": 67,
+    "name_arabic": "الملك",
+    "name_latin": "Al-Mulk",
+    "name_id": "Kerajaan",
+    "ayah_count": 30
+  },
+  {
+    "surah": 68,
+    "name_arabic": "القلم",
+    "name_latin": "Al-Qalam",
+    "name_id": "Pena",
+    "ayah_count": 52
+  },
+  {
+    "surah": 69,
+    "name_arabic": "الحاۤقّة",
+    "name_latin": "Al-Haqqah",
+    "name_id": "Hari Kiamat",
+    "ayah_count": 52
+  },
+  {
+    "surah": 70,
+    "name_arabic": "المعارج",
+    "name_latin": "Al-Ma'arij",
+    "name_id": "Tempat Naik",
+    "ayah_count": 44
+  },
+  {
+    "surah": 71,
+    "name_arabic": "نوح",
+    "name_latin": "Nuh",
+    "name_id": "Nuh",
+    "ayah_count": 28
+  },
+  {
+    "surah": 72,
+    "name_arabic": "الجن",
+    "name_latin": "Al-Jinn",
+    "name_id": "Jin",
+    "ayah_count": 28
+  },
+  {
+    "surah": 73,
+    "name_arabic": "المزّمّل",
+    "name_latin": "Al-Muzzammil",
+    "name_id": "Orang Yang Berselimut",
+    "ayah_count": 20
+  },
+  {
+    "surah": 74,
+    "name_arabic": "المدّثّر",
+    "name_latin": "Al-Muddassir",
+    "name_id": "Orang Yang Berkemul",
+    "ayah_count": 56
+  },
+  {
+    "surah": 75,
+    "name_arabic": "القيٰمة",
+    "name_latin": "Al-Qiyamah",
+    "name_id": "Hari Kiamat",
+    "ayah_count": 40
+  },
+  {
+    "surah": 76,
+    "name_arabic": "الانسان",
+    "name_latin": "Al-Insan",
+    "name_id": "Manusia",
+    "ayah_count": 31
+  },
+  {
+    "surah": 77,
+    "name_arabic": "المرسلٰت",
+    "name_latin": "Al-Mursalat",
+    "name_id": "Malaikat Yang Diutus",
+    "ayah_count": 50
+  },
+  {
+    "surah": 78,
+    "name_arabic": "النبأ",
+    "name_latin": "An-Naba'",
+    "name_id": "Berita Besar",
+    "ayah_count": 40
+  },
+  {
+    "surah": 79,
+    "name_arabic": "النّٰزعٰت",
+    "name_latin": "An-Nazi'at",
+    "name_id": "Malaikat Yang Mencabut",
+    "ayah_count": 46
+  },
+  {
+    "surah": 80,
+    "name_arabic": "عبس",
+    "name_latin": "'Abasa",
+    "name_id": "Bermuka Masam",
+    "ayah_count": 42
+  },
+  {
+    "surah": 81,
+    "name_arabic": "التكوير",
+    "name_latin": "At-Takwir",
+    "name_id": "Penggulungan",
+    "ayah_count": 29
+  },
+  {
+    "surah": 82,
+    "name_arabic": "الانفطار",
+    "name_latin": "Al-Infitar",
+    "name_id": "Terbelah",
+    "ayah_count": 19
+  },
+  {
+    "surah": 83,
+    "name_arabic": "المطفّفين",
+    "name_latin": "Al-Mutaffifin",
+    "name_id": "Orang-Orang Curang",
+    "ayah_count": 36
+  },
+  {
+    "surah": 84,
+    "name_arabic": "الانشقاق",
+    "name_latin": "Al-Insyiqaq",
+    "name_id": "Terbelah",
+    "ayah_count": 25
+  },
+  {
+    "surah": 85,
+    "name_arabic": "البروج",
+    "name_latin": "Al-Buruj",
+    "name_id": "Gugusan Bintang",
+    "ayah_count": 22
+  },
+  {
+    "surah": 86,
+    "name_arabic": "الطارق",
+    "name_latin": "At-Tariq",
+    "name_id": "Yang Datang Di Malam Hari",
+    "ayah_count": 17
+  },
+  {
+    "surah": 87,
+    "name_arabic": "الاعلى",
+    "name_latin": "Al-A'la",
+    "name_id": "Maha Tinggi",
+    "ayah_count": 19
+  },
+  {
+    "surah": 88,
+    "name_arabic": "الغاشية",
+    "name_latin": "Al-Gasyiyah",
+    "name_id": "Hari Kiamat",
+    "ayah_count": 26
+  },
+  {
+    "surah": 89,
+    "name_arabic": "الفجر",
+    "name_latin": "Al-Fajr",
+    "name_id": "Fajar",
+    "ayah_count": 30
+  },
+  {
+    "surah": 90,
+    "name_arabic": "البلد",
+    "name_latin": "Al-Balad",
+    "name_id": "Negeri",
+    "ayah_count": 20
+  },
+  {
+    "surah": 91,
+    "name_arabic": "الشمس",
+    "name_latin": "Asy-Syams",
+    "name_id": "Matahari",
+    "ayah_count": 15
+  },
+  {
+    "surah": 92,
+    "name_arabic": "الّيل",
+    "name_latin": "Al-Lail",
+    "name_id": "Malam",
+    "ayah_count": 21
+  },
+  {
+    "surah": 93,
+    "name_arabic": "الضحى",
+    "name_latin": "Ad-Duha",
+    "name_id": "Duha",
+    "ayah_count": 11
+  },
+  {
+    "surah": 94,
+    "name_arabic": "الشرح",
+    "name_latin": "Asy-Syarh",
+    "name_id": "Lapang",
+    "ayah_count": 8
+  },
+  {
+    "surah": 95,
+    "name_arabic": "التين",
+    "name_latin": "At-Tin",
+    "name_id": "Buah Tin",
+    "ayah_count": 8
+  },
+  {
+    "surah": 96,
+    "name_arabic": "العلق",
+    "name_latin": "Al-'Alaq",
+    "name_id": "Segumpal Darah",
+    "ayah_count": 19
+  },
+  {
+    "surah": 97,
+    "name_arabic": "القدر",
+    "name_latin": "Al-Qadr",
+    "name_id": "Kemuliaan",
+    "ayah_count": 5
+  },
+  {
+    "surah": 98,
+    "name_arabic": "البيّنة",
+    "name_latin": "Al-Bayyinah",
+    "name_id": "Bukti Nyata",
+    "ayah_count": 8
+  },
+  {
+    "surah": 99,
+    "name_arabic": "الزلزلة",
+    "name_latin": "Az-Zalzalah",
+    "name_id": "Guncangan",
+    "ayah_count": 8
+  },
+  {
+    "surah": 100,
+    "name_arabic": "العٰديٰت",
+    "name_latin": "Al-'Adiyat",
+    "name_id": "Kuda Yang Berlari Kencang",
+    "ayah_count": 11
+  },
+  {
+    "surah": 101,
+    "name_arabic": "القارعة",
+    "name_latin": "Al-Qari'ah",
+    "name_id": "Hari Kiamat",
+    "ayah_count": 11
+  },
+  {
+    "surah": 102,
+    "name_arabic": "التكاثر",
+    "name_latin": "At-Takasur",
+    "name_id": "Bermegah-Megahan",
+    "ayah_count": 8
+  },
+  {
+    "surah": 103,
+    "name_arabic": "العصر",
+    "name_latin": "Al-'Asr",
+    "name_id": "Asar",
+    "ayah_count": 3
+  },
+  {
+    "surah": 104,
+    "name_arabic": "الهمزة",
+    "name_latin": "Al-Humazah",
+    "name_id": "Pengumpat",
+    "ayah_count": 9
+  },
+  {
+    "surah": 105,
+    "name_arabic": "الفيل",
+    "name_latin": "Al-Fil",
+    "name_id": "Gajah",
+    "ayah_count": 5
+  },
+  {
+    "surah": 106,
+    "name_arabic": "قريش",
+    "name_latin": "Quraisy",
+    "name_id": "Quraisy",
+    "ayah_count": 4
+  },
+  {
+    "surah": 107,
+    "name_arabic": "الماعون",
+    "name_latin": "Al-Ma'un",
+    "name_id": "Barang Yang Berguna",
+    "ayah_count": 7
+  },
+  {
+    "surah": 108,
+    "name_arabic": "الكوثر",
+    "name_latin": "Al-Kausar",
+    "name_id": "Pemberian Yang Banyak",
+    "ayah_count": 3
+  },
+  {
+    "surah": 109,
+    "name_arabic": "الكٰفرون",
+    "name_latin": "Al-Kafirun",
+    "name_id": "Orang-Orang kafir",
+    "ayah_count": 6
+  },
+  {
+    "surah": 110,
+    "name_arabic": "النصر",
+    "name_latin": "An-Nasr",
+    "name_id": "Pertolongan",
+    "ayah_count": 3
+  },
+  {
+    "surah": 111,
+    "name_arabic": "اللهب",
+    "name_latin": "Al-Lahab",
+    "name_id": "Api Yang Bergejolak",
+    "ayah_count": 5
+  },
+  {
+    "surah": 112,
+    "name_arabic": "الاخلاص",
+    "name_latin": "Al-Ikhlas",
+    "name_id": "Ikhlas",
+    "ayah_count": 4
+  },
+  {
+    "surah": 113,
+    "name_arabic": "الفلق",
+    "name_latin": "Al-Falaq",
+    "name_id": "Subuh",
+    "ayah_count": 5
+  },
+  {
+    "surah": 114,
+    "name_arabic": "الناس",
+    "name_latin": "An-Nas",
+    "name_id": "Manusia",
+    "ayah_count": 6
+  }
+]
