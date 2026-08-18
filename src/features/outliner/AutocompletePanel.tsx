@@ -18,7 +18,7 @@ export interface Suggestion {
 const LABEL: Record<TriggerKind, string> = {
   tag: 'Tag',
   category: 'Kategori',
-  link: 'Blok dipromosikan',
+  link: 'Blok (★)',
   ayat: 'Ayat',
 }
 

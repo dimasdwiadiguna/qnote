@@ -173,6 +173,10 @@ alasan dan jalan mundurnya).
 
 ## Cara pakai singkat
 
+**Catatan (docs)** — sentuh judul di atas untuk berpindah catatan, membuat
+catatan baru (langsung siap diketik), mengubah judul, atau menghapusnya. Tiap
+catatan punya pohon bullet-nya sendiri.
+
 **Penanda** — ditulis langsung di teks bullet:
 
 | Tulis | Artinya |
@@ -183,13 +187,17 @@ alasan dan jalan mundurnya).
 
 Mengetik `#`, `[`, atau `[[` memunculkan saran. Mengetik `@` membuka palet ayat.
 
-**Toolbar** (muncul di atas keyboard): `⇤` `⇥` outdent/indent · `#` `[ ]` `[[ ]]`
-penanda · `+ ayat` sisip ayat · `★` promosi.
+**Toolbar** (muncul di atas keyboard): `⇤` `⇥` naik/turun tingkat — **anak
+selalu ikut** · `#` `[ ]` `[[ ]]` penanda · `+ ayat` sisip ayat · `★` jadikan blok.
 
-**Promosi** adalah flag, bukan pemindahan data — bisa dibatalkan kapan saja. Yang
+> Catatan istilah: pada outliner, *promote/demote* biasanya berarti
+> outdent/indent. Di Qnote naik/turun tingkat adalah `⇤`/`⇥`; `★` ("jadikan
+> blok") adalah hal yang berbeda dan tidak memindahkan bullet ke mana pun.
+
+**Jadikan blok** (★) adalah flag, bukan pemindahan data — bisa dibatalkan kapan saja. Yang
 dibuka hanya tiga hal: blok bisa jadi target `[[wiki-link]]`, punya panel backlink, dan
 masuk antrian drill. Tag dan kategori tetap terindeks di **semua** bullet tanpa promosi.
-Layar **Kandidat** menampilkan bullet bertanda yang belum dipromosikan.
+Layar **Kandidat** menampilkan bullet bertanda yang belum dijadikan blok.
 
 **Drill** memakai FSRS dengan self-rating (Again/Hard/Good/Easy). Tiga mode dijadwalkan
 terpisah: **A** tema → ayat, **B** cloze Arab bertahap, **C** terjemah → rujukan.

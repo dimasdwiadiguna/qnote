@@ -146,7 +146,7 @@ export function DrillPage({
           <Centered>
             Tidak ada kartu jatuh tempo.
             <span className="mt-2 block text-[13px]">
-              Mode A butuh blok yang <strong>dipromosikan</strong> dan punya ayat terkait
+              Mode A butuh bullet yang sudah <strong>dijadikan blok</strong> (★) dan punya ayat terkait
               (parent–anak langsung atau wiki-link). Mode B & C butuh minimal satu kartu ayat
               di catatan.
             </span>
