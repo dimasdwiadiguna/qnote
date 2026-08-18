@@ -172,3 +172,80 @@ Uthmani, dirancang khusus untuk teks mushaf) dengan Scheherazade New sebagai
 cadangan. Keduanya woff2 lokal, 62 KB dan 123 KB, ikut precache. Mengganti ke
 LPMQ cukup menaruh file di `public/fonts/` dan menukar `@font-face` di
 `src/index.css`.
+
+---
+
+# Putaran 2 — umpan balik pemakaian di HP
+
+## D22 — Setiap baris memasang textarea sungguhan, selamanya
+
+**Ini pembatalan D12**, dan penyebab keluhan "mengetik di HP menyiksa".
+
+Rancangan lama menukar `<div>` menjadi `<textarea>` hanya pada baris yang
+sedang difokus. Di iOS Safari itu mematikan karena dua sebab yang bertumpuk:
+
+1. Membongkar elemen yang sedang fokus melempar fokus ke `<body>`, dan keyboard
+   turun.
+2. `.focus()` yang dipanggil setelah `await` (kita menunggu tulisan Dexie dulu)
+   sudah berada di luar jendela gestur pengguna, dan Safari **menolak** membuka
+   keyboard di luar gestur.
+
+Jadi tiap kali pindah bullet: keyboard turun dan tidak naik lagi. Tidak ada
+penyetelan yang bisa menyelamatkan rancangan itu — yang salah rancangannya.
+
+Sekarang setiap baris punya textarea sendiri yang selalu terpasang. Menyentuh
+bullet lain adalah perpindahan fokus native: nol JS, keyboard tidak pernah
+turun, kursor mendarat tepat di titik sentuh. Virtualisasi tetap membatasi
+jumlah textarea yang benar-benar ada di DOM.
+
+Chip penanda pindah ke lapisan **cermin** di belakang textarea bertext
+transparan. Konsekuensi yang harus dijaga selamanya: chip di dalam editor hanya
+boleh mengubah **warna**. Satu padding saja menggeser metrik teks dan kursor
+tidak lagi sejajar dengan huruf yang terlihat. Chip berpadding tetap dipakai di
+layar baca (Cari, Kandidat, Inspirasi), tempat tidak ada kursor. Uji browser
+membandingkan `getComputedStyle` cermin vs textarea dan menuntut selisih posisi
+0 px.
+
+## D23 — Kunci serah-terima saat `Enter`
+
+Membuat bullet baru harus menunggu Dexie. Dalam celah itu textarea LAMA masih
+yang terfokus, jadi huruf yang terlanjur diketik mendarat di bullet sebelumnya
+dan diam-diam menyambung dua catatan. Uji browser dengan kecepatan mesin
+menghasilkan `"bullet satubullet dua"` — bukan teori.
+
+Baris asal dikunci (`readOnly`, bukan `disabled` — elemen disabled kehilangan
+fokus dan keyboard turun) sejak sebelum `await` pertama. Huruf yang masuk
+selama terkunci **ditampung**, lalu disusulkan ke bullet baru begitu fokus
+mendarat. Kuncinya dibuka di dalam `applyFocus`, bukan lebih awal: percobaan
+pertama membukanya tepat setelah `await` dan huruf tetap bocor ke bullet lama.
+
+## D24 — `documents` disurfacekan, bukan ditambahkan
+
+Umpan balik meminta "lapisan dasar bernama docs". Lapisan itu sudah ada sejak
+M1 — `documents` adalah tabel nyata dan tiap blok membawa `document_id`. Yang
+belum ada hanya pintunya. Karena itu tidak ada perubahan skema dan tidak ada
+migrasi: judul di header kini bisa disentuh untuk membuka pemilih catatan
+(ganti, buat, ubah judul, hapus). Catatan baru langsung memfokuskan bullet
+pertamanya, supaya duduk di kajian lalu mengetik cukup dua sentuhan.
+
+## D25 — Kata "promosi" dihindari di UI
+
+Pada outliner, *promote/demote* berarti outdent/indent. Brief memakai "promosi"
+untuk `is_promoted`, dan saya membawanya apa adanya ke UI — sehingga tombol ★
+terbaca seolah memindahkan bullet, dan umpan balik "tidak bisa mempromosikan
+jadi parent" lahir dari situ. Nama kolom `is_promoted` tetap (itu bahasa brief
+dan skema); yang berubah hanya teks yang dibaca pengguna: ⇤/⇥ adalah naik/turun
+tingkat, ★ adalah "jadikan blok".
+
+## D26 — Ikon navigasi jadi SVG
+
+Glyph unicode (✎ ⌕ ◷ ✦ ☆ ⚙) tidak bisa dikendalikan ukurannya: tiap glyph punya
+tinggi-x sendiri di tiap font sistem, jadi sebagian tampak jauh lebih kecil dan
+semuanya mungil di HP. SVG menggambar pada kotak 24×24 yang sama persis; label
+naik ke 11px dan tinggi sentuh ke 54px.
+
+## D27 — Kerapatan baris
+
+`line-height` 1.65 → 1.45, indentasi 18 → 15 px, padding baris dipangkas, dan
+kartu ayat sedikit lebih rapat. Bullet yang tadinya memakan ~42 px kini ~32 px,
+jadi satu layar HP memuat sekitar sepertiga lebih banyak catatan.

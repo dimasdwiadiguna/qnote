@@ -21,7 +21,7 @@ import {
 import { ROOT, type Ayat, type Block, type SurahMeta } from '../../db/types'
 import { applyCompletion, detectTrigger, removeTrigger, type Trigger } from '../../lib/autocomplete'
 import { computeInheritance, type CategoryAssignment } from '../../lib/inherit'
-import { ancestorsOf, buildTree, flattenTree } from '../../lib/tree'
+import { ancestorsOf, buildTree, flattenTree, type FlatNode } from '../../lib/tree'
 import { useDebouncedSave } from '../../ui/hooks'
 import type { Route } from '../../ui/router'
 
@@ -31,6 +31,7 @@ import { BacklinkPanel } from './BacklinkPanel'
 import { BlockMenu } from './BlockMenu'
 import { BlockRow } from './BlockRow'
 import type { BlockEditorHandle } from './BlockEditor'
+import { DocSwitcher } from './DocSwitcher'
 import { MobileToolbar, type ToolbarAction } from './MobileToolbar'
 
 const EMPTY_CATEGORIES: CategoryAssignment = { direct: [], inherited: [] }
@@ -89,6 +90,8 @@ export function OutlinePage({
   const zoomId = route.zoom && tree.byId.has(route.zoom) ? route.zoom : null
   const rootId = zoomId ?? ROOT
   const nodes = useMemo(() => flattenTree(tree, rootId), [tree, rootId])
+  const nodesRef = useRef<FlatNode[]>(nodes)
+  nodesRef.current = nodes
 
   /**
    * Saat zoom-in, kategori leluhur di ATAS akar tampilan tetap harus diwariskan
@@ -142,14 +145,25 @@ export function OutlinePage({
 
   // ── state editor ────────────────────────────────────────────────────────────
   const [focusedId, setFocusedId] = useState<string | null>(null)
-  const [caretRequest, setCaretRequest] = useState<number | null>(null)
   const [trigger, setTrigger] = useState<Trigger | null>(null)
   const [menuId, setMenuId] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [docsOpen, setDocsOpen] = useState(false)
   const [cardsCollapsed, setCardsCollapsed] = useState(false)
   const [cardOverrides, setCardOverrides] = useState<Set<string>>(() => new Set())
 
-  const editorRef = useRef<BlockEditorHandle>(null)
+  /**
+   * Handle textarea SETIAP baris yang sedang ter-render. Karena semua baris
+   * memasang textarea sungguhan, memfokus baris lain cukup memanggil handle-nya
+   * — tidak perlu menunggu render, dan tidak ada elemen yang dibongkar.
+   */
+  const editorRefs = useRef(new Map<string, BlockEditorHandle>())
+  const pendingFocus = useRef<{
+    id: string
+    caret: number
+    /** Baris yang dikunci selama serah-terima; dibuka saat fokus benar-benar mendarat. */
+    source?: BlockEditorHandle
+  } | null>(null)
   const focusedIdRef = useRef<string | null>(null)
   focusedIdRef.current = focusedId
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -160,6 +174,18 @@ export function OutlinePage({
    * disisipkan di akhir dokumen alih-alih di posisi kursor tadi.
    */
   const anchorRef = useRef<string | null>(null)
+  /** Catatan baru: fokuskan bullet pertamanya begitu efek dokumen-kosong membuatnya. */
+  const wantFirstBullet = useRef(false)
+
+  const registerEditor = useCallback((id: string, handle: BlockEditorHandle | null): void => {
+    if (handle) editorRefs.current.set(id, handle)
+    else if (editorRefs.current.get(id)) editorRefs.current.delete(id)
+  }, [])
+
+  const activeEditor = useCallback((): BlockEditorHandle | undefined => {
+    const id = focusedIdRef.current ?? anchorRef.current
+    return id ? editorRefs.current.get(id) : undefined
+  }, [])
 
   const { push, flush } = useDebouncedSave(async (id, value) => {
     await updateContent(id, value)
@@ -167,37 +193,66 @@ export function OutlinePage({
 
   /** Menyimpan isi textarea SEKARANG — dipanggil sebelum setiap operasi struktur. */
   const commitNow = useCallback(async (): Promise<void> => {
-    const element = editorRef.current
-    const id = focusedIdRef.current
+    const id = focusedIdRef.current ?? anchorRef.current
+    const element = id ? editorRefs.current.get(id) : undefined
     await flush()
     if (id && element) await updateContent(id, element.getValue())
   }, [flush])
 
-  const focusBlock = useCallback((id: string, caret: number): void => {
-    if (blurTimer.current !== null) {
-      window.clearTimeout(blurTimer.current)
-      blurTimer.current = null
-    }
-    anchorRef.current = id
-    setFocusedId(id)
-    setCaretRequest(caret)
-    setTrigger(null)
-  }, [])
-
   /**
-   * Melepas fokus setelah jeda pendek. Jedanya perlu: menyentuh tombol toolbar
-   * memicu blur sesaat di sebagian browser, dan mengosongkan fokus seketika
-   * akan menurunkan toolbar tepat saat jari menyentuhnya.
+   * Mendaratkan fokus di `id`, DAN baru di situ membuka kunci baris asal.
+   * Urutannya penting: kunci harus bertahan sampai fokus benar-benar pindah.
+   * Kalau dibuka lebih awal, huruf yang diketik pada sisa celah kembali
+   * mendarat di bullet lama — persis bug yang hendak ditutup.
    */
-  const scheduleBlur = useCallback((): void => {
-    void flush()
-    if (blurTimer.current !== null) window.clearTimeout(blurTimer.current)
-    blurTimer.current = window.setTimeout(() => {
-      blurTimer.current = null
-      setFocusedId(null)
+  const applyFocus = useCallback(
+    (handle: BlockEditorHandle, id: string, caret: number, source?: BlockEditorHandle): void => {
+      const typed = source ? source.release() : ''
+      if (typed.length > 0) {
+        const next = handle.getValue() + typed
+        handle.setValue(next, next.length)
+        push(id, next)
+        handle.focus(next.length)
+        return
+      }
+      handle.focus(caret)
+    },
+    [push],
+  )
+
+  const focusBlock = useCallback(
+    (id: string, caret: number, source?: BlockEditorHandle): void => {
+      if (blurTimer.current !== null) {
+        window.clearTimeout(blurTimer.current)
+        blurTimer.current = null
+      }
+      anchorRef.current = id
+      setFocusedId(id)
       setTrigger(null)
-    }, 220)
-  }, [flush])
+      const handle = editorRefs.current.get(id)
+      if (handle) applyFocus(handle, id, caret, source)
+      // Baris baru belum ter-render; fokuskan segera setelah render berikutnya.
+      else pendingFocus.current = { id, caret, source }
+    },
+    [applyFocus],
+  )
+
+  useEffect(() => {
+    const wanted = pendingFocus.current
+    if (!wanted) return
+    const handle = editorRefs.current.get(wanted.id)
+    if (!handle) return
+    pendingFocus.current = null
+    applyFocus(handle, wanted.id, wanted.caret, wanted.source)
+  })
+
+  useEffect(() => {
+    if (!wantFirstBullet.current) return
+    const first = nodes[0]
+    if (!first) return
+    wantFirstBullet.current = false
+    focusBlock(first.block.id, 0)
+  }, [nodes, focusBlock])
 
   useEffect(() => {
     onEditingChange?.(focusedId !== null)
@@ -230,25 +285,30 @@ export function OutlinePage({
     void createFirstBlock(documentId, ROOT)
   }, [documentId, blocks.length])
 
-  const currentIndex = focusedId ? nodes.findIndex((n) => n.block.id === focusedId) : -1
-  const currentNode = currentIndex >= 0 ? nodes[currentIndex] : undefined
-  const currentBlock = currentNode?.block
+  const nodeOf = useCallback(
+    (blockId: string): { node: FlatNode; index: number } | null => {
+      const index = nodesRef.current.findIndex((n) => n.block.id === blockId)
+      if (index === -1) return null
+      return { node: nodesRef.current[index] as FlatNode, index }
+    },
+    [],
+  )
+
+  const currentBlock = focusedId ? tree.byId.get(focusedId) : undefined
 
   // ── autosave & autocomplete ────────────────────────────────────────────────
 
   const handleInput = useCallback(
-    (value: string, caret: number): void => {
-      const id = focusedIdRef.current
-      if (!id) return
-      push(id, value)
+    (blockId: string, value: string, caret: number): void => {
+      push(blockId, value)
 
       const detected = detectTrigger(value, caret)
       if (detected?.kind === 'ayat') {
-        const element = editorRef.current
+        const element = editorRefs.current.get(blockId)
         if (element) {
           const next = removeTrigger(value, detected, caret)
           element.setValue(next.text, next.caret)
-          push(id, next.text)
+          push(blockId, next.text)
         }
         setTrigger(null)
         setPickerOpen(true)
@@ -261,124 +321,151 @@ export function OutlinePage({
 
   const insertAtCaret = useCallback(
     (snippet: string): void => {
-      const element = editorRef.current
-      if (!element) return
+      const element = activeEditor()
+      const id = focusedIdRef.current ?? anchorRef.current
+      if (!element || !id) return
       const value = element.getValue()
       const caret = element.getCaret()
       const next = value.slice(0, caret) + snippet + value.slice(caret)
       const nextCaret = caret + snippet.length
       element.setValue(next, nextCaret)
       element.focus(nextCaret)
-      handleInput(next, nextCaret)
+      handleInput(id, next, nextCaret)
     },
-    [handleInput],
+    [activeEditor, handleInput],
   )
 
   const acceptCompletion = useCallback(
     (value: string): void => {
-      const element = editorRef.current
-      if (!element || !trigger) return
+      const element = activeEditor()
+      const id = focusedIdRef.current ?? anchorRef.current
+      if (!element || !trigger || !id) return
       const result = applyCompletion(element.getValue(), trigger, element.getCaret(), value)
       element.setValue(result.text, result.caret)
       element.focus(result.caret)
-      const id = focusedIdRef.current
-      if (id) push(id, result.text)
+      push(id, result.text)
       setTrigger(null)
     },
-    [trigger, push],
+    [activeEditor, trigger, push],
   )
 
   // ── operasi struktur ────────────────────────────────────────────────────────
 
+  /**
+   * Indent/outdent MEMBAWA SELURUH ANAK tanpa menyentuh satu pun baris anak —
+   * mereka menunjuk `parent_id` blok yang dipindah, jadi cukup satu baris
+   * berubah (lihat repo.ts). Kursor dikembalikan ke tempat semula supaya
+   * mengetik bisa langsung dilanjutkan.
+   */
   const doIndent = useCallback(async (): Promise<void> => {
-    const id = focusedIdRef.current
+    const id = focusedIdRef.current ?? anchorRef.current
     if (!id) return
-    const caret = editorRef.current?.getCaret() ?? 0
+    const caret = editorRefs.current.get(id)?.getCaret() ?? 0
     await commitNow()
     if (await indentBlock(id)) focusBlock(id, caret)
   }, [commitNow, focusBlock])
 
   const doOutdent = useCallback(async (): Promise<void> => {
-    const id = focusedIdRef.current
+    const id = focusedIdRef.current ?? anchorRef.current
     if (!id) return
-    const caret = editorRef.current?.getCaret() ?? 0
+    const caret = editorRefs.current.get(id)?.getCaret() ?? 0
     await commitNow()
     if (await outdentBlock(id)) focusBlock(id, caret)
   }, [commitNow, focusBlock])
 
-  const handleEnter = useCallback(async (): Promise<void> => {
-    const element = editorRef.current
-    const node = currentNode
-    if (!element || !node) return
-    const value = element.getValue()
-    const caret = element.getCaret()
-    await commitNow()
+  const handleEnter = useCallback(
+    async (blockId: string): Promise<void> => {
+      const found = nodeOf(blockId)
+      const element = editorRefs.current.get(blockId)
+      if (!found || !element) return
+      const { node } = found
+      const value = element.getValue()
+      const caret = element.getCaret()
+      // Kunci SEBELUM await pertama — celahnya justru ada di antara sini dan
+      // saat bullet baru selesai dibuat.
+      element.lock()
+      await commitNow()
 
-    // Blok ayat TIDAK PERNAH dipecah — Enter membuat anak (brief §5).
-    if (node.block.block_type === 'ayat') {
-      const created = await createChildFirst(node.block.id)
-      if (created) focusBlock(created, 0)
-      return
-    }
+      // Blok ayat TIDAK PERNAH dipecah — Enter membuat anak (brief §5).
+      if (node.block.block_type === 'ayat') {
+        const created = await createChildFirst(node.block.id)
+        if (created) focusBlock(created, 0, element)
+        else element.release()
+        return
+      }
 
-    // Enter di bullet kosong yang ter-indent = outdent.
-    if (value.trim() === '' && node.block.parent_id !== ROOT) {
-      if (await outdentBlock(node.block.id)) focusBlock(node.block.id, 0)
-      return
-    }
+      // Enter di bullet kosong yang ter-indent = outdent.
+      if (value.trim() === '' && node.block.parent_id !== ROOT) {
+        const moved = await outdentBlock(node.block.id)
+        if (moved) focusBlock(node.block.id, 0, element)
+        else element.release()
+        return
+      }
 
-    const head = value.slice(0, caret)
-    const tail = value.slice(caret)
-    if (tail.length > 0) await updateContent(node.block.id, head)
+      const head = value.slice(0, caret)
+      const tail = value.slice(caret)
+      if (tail.length > 0) await updateContent(node.block.id, head)
 
-    // Bullet dengan anak yang sedang terbuka: bullet baru jadi anak pertama,
-    // bukan saudara sesudah seluruh subtree — itu yang diharapkan saat menulis.
-    const created =
-      node.hasChildren && node.block.is_collapsed === 0
-        ? await createChildFirst(node.block.id, { content: tail })
-        : await createSiblingAfter(node.block.id, { content: tail })
-    if (created) focusBlock(created, 0)
-  }, [currentNode, commitNow, focusBlock])
+      // Bullet dengan anak yang sedang terbuka: bullet baru jadi anak pertama,
+      // bukan saudara sesudah seluruh subtree — itu yang diharapkan saat menulis.
+      const created =
+        node.hasChildren && node.block.is_collapsed === 0
+          ? await createChildFirst(node.block.id, { content: tail })
+          : await createSiblingAfter(node.block.id, { content: tail })
+      if (created) focusBlock(created, 0, element)
+      else {
+        element.release()
+        element.focus(caret)
+      }
+    },
+    [nodeOf, commitNow, focusBlock],
+  )
 
-  const handleBackspaceAtStart = useCallback(async (): Promise<void> => {
-    const element = editorRef.current
-    const node = currentNode
-    if (!element || !node || currentIndex <= 0) return
-    const previous = nodes[currentIndex - 1]
-    if (!previous) return
+  const handleBackspaceAtStart = useCallback(
+    async (blockId: string): Promise<void> => {
+      const found = nodeOf(blockId)
+      const element = editorRefs.current.get(blockId)
+      if (!found || !element || found.index <= 0) return
+      const previous = nodesRef.current[found.index - 1]
+      if (!previous) return
 
-    const value = element.getValue()
-    await commitNow()
+      const value = element.getValue()
+      await commitNow()
 
-    // Backspace pada anotasi kosong TIDAK menghapus ayat (brief §5).
-    if (node.block.block_type === 'ayat') return
+      // Backspace pada anotasi kosong TIDAK menghapus ayat (brief §5).
+      if (found.node.block.block_type === 'ayat') return
 
-    if (value.length === 0) {
-      if (node.hasChildren) return
-      await deleteBlock(node.block.id)
-      focusBlock(previous.block.id, -1)
-      return
-    }
+      if (value.length === 0) {
+        if (found.node.hasChildren) return
+        await deleteBlock(found.node.block.id)
+        focusBlock(previous.block.id, -1)
+        return
+      }
 
-    if (node.hasChildren || previous.block.block_type === 'ayat') return
-    const result = await mergeIntoPrevious(node.block.id, previous.block.id)
-    if (result.ok) focusBlock(previous.block.id, result.caretAt)
-  }, [currentNode, currentIndex, nodes, commitNow, focusBlock])
+      if (found.node.hasChildren || previous.block.block_type === 'ayat') return
+      const result = await mergeIntoPrevious(found.node.block.id, previous.block.id)
+      if (result.ok) focusBlock(previous.block.id, result.caretAt)
+    },
+    [nodeOf, commitNow, focusBlock],
+  )
 
   const moveFocus = useCallback(
-    async (delta: number): Promise<void> => {
-      if (currentIndex < 0) return
-      const target = nodes[currentIndex + delta]
+    (blockId: string, delta: number): void => {
+      const found = nodeOf(blockId)
+      if (!found) return
+      const target = nodesRef.current[found.index + delta]
       if (!target) return
-      const caret = editorRef.current?.getCaret() ?? 0
-      await commitNow()
+      const caret = editorRefs.current.get(blockId)?.getCaret() ?? 0
+      // Tanpa `await` di depan: fokus harus berpindah dalam gestur yang sama,
+      // kalau tidak keyboard iOS akan turun. Simpan berjalan di belakang.
+      void commitNow()
       focusBlock(target.block.id, delta > 0 ? Math.min(caret, target.block.content.length) : -1)
     },
-    [currentIndex, nodes, commitNow, focusBlock],
+    [nodeOf, commitNow, focusBlock],
   )
 
   const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLTextAreaElement>): void => {
+    (blockId: string, event: React.KeyboardEvent<HTMLTextAreaElement>): void => {
       const element = event.currentTarget
 
       if (event.key === 'Escape') {
@@ -390,7 +477,7 @@ export function OutlinePage({
       // — Enter saat kandidat IME terbuka bukan Enter untuk bullet baru.
       if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
         event.preventDefault()
-        void handleEnter()
+        void handleEnter(blockId)
         return
       }
 
@@ -406,23 +493,52 @@ export function OutlinePage({
         element.selectionEnd === 0
       ) {
         event.preventDefault()
-        void handleBackspaceAtStart()
+        void handleBackspaceAtStart(blockId)
         return
       }
 
       if (event.key === 'ArrowUp' && !element.value.slice(0, element.selectionStart).includes('\n')) {
         event.preventDefault()
-        void moveFocus(-1)
+        moveFocus(blockId, -1)
         return
       }
 
       if (event.key === 'ArrowDown' && !element.value.slice(element.selectionStart).includes('\n')) {
         event.preventDefault()
-        void moveFocus(1)
+        moveFocus(blockId, 1)
       }
     },
     [handleEnter, doIndent, doOutdent, handleBackspaceAtStart, moveFocus],
   )
+
+  const handleFocus = useCallback((blockId: string): void => {
+    if (blurTimer.current !== null) {
+      window.clearTimeout(blurTimer.current)
+      blurTimer.current = null
+    }
+    anchorRef.current = blockId
+    setFocusedId(blockId)
+  }, [])
+
+  /**
+   * Melepas fokus setelah jeda pendek. Jedanya perlu: menyentuh tombol toolbar
+   * memicu blur sesaat di sebagian browser, dan mengosongkan fokus seketika
+   * akan menurunkan toolbar tepat saat jari menyentuhnya.
+   */
+  const handleBlur = useCallback((): void => {
+    void flush()
+    if (blurTimer.current !== null) window.clearTimeout(blurTimer.current)
+    blurTimer.current = window.setTimeout(() => {
+      blurTimer.current = null
+      setFocusedId(null)
+      setTrigger(null)
+    }, 220)
+  }, [flush])
+
+  const handleCaretMove = useCallback((blockId: string, caret: number): void => {
+    const element = editorRefs.current.get(blockId)
+    if (element) setTrigger(detectTrigger(element.getValue(), caret))
+  }, [])
 
   // ── ayat ────────────────────────────────────────────────────────────────────
 
@@ -476,7 +592,7 @@ export function OutlinePage({
     getScrollElement: () => scrollRef.current,
     // Kartu ayat jauh lebih tinggi dari bullet teks, jadi tinggi diukur nyata
     // lewat measureElement — perkiraan tetap saja untuk scroll awal.
-    estimateSize: () => 42,
+    estimateSize: () => 32,
     overscan: 14,
     getItemKey: (index) => nodes[index]?.block.id ?? index,
   })
@@ -488,29 +604,29 @@ export function OutlinePage({
   const menuBlock = menuId ? (tree.byId.get(menuId) ?? null) : null
   const currentDocument = documents.find((d) => d.id === documentId)
 
+  const openDocument = useCallback(
+    (id: string): void => {
+      setDocsOpen(false)
+      setFocusedId(null)
+      anchorRef.current = null
+      editorRefs.current.clear()
+      navigate({ documentId: id, zoom: null, focus: null })
+    },
+    [navigate],
+  )
+
   const renderRow = (index: number): JSX.Element | null => {
     const node = nodes[index]
     if (!node) return null
     const { block } = node
     const key = `${block.ayat_surah}:${block.ayat_number}`
-    const editing = focusedId === block.id
     return (
       <BlockRow
         node={node}
         categories={inheritance.get(block.id) ?? EMPTY_CATEGORIES}
-        editing={editing}
         ayat={block.block_type === 'ayat' ? ayatData.ayat.get(key) : undefined}
         surah={block.ayat_surah !== null ? ayatData.surahs.get(block.ayat_surah) : undefined}
         ayatCardCollapsed={isCardCollapsed(block.id)}
-        editorRef={editing ? editorRef : null}
-        caretRequest={editing ? caretRequest : null}
-        onBeginEdit={(target, caret) => {
-          if (focusedIdRef.current === target.id) {
-            editorRef.current?.focus(caret)
-            return
-          }
-          void commitNow().then(() => focusBlock(target.id, caret))
-        }}
         onZoom={(id) => {
           void commitNow()
           navigate({ zoom: id, documentId })
@@ -520,13 +636,12 @@ export function OutlinePage({
         onOpenMenu={setMenuId}
         onInput={handleInput}
         onKeyDown={handleKeyDown}
-        onBlur={scheduleBlur}
-        onCaretMove={(caret) => {
-          const element = editorRef.current
-          if (element) setTrigger(detectTrigger(element.getValue(), caret))
-        }}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onCaretMove={handleCaretMove}
+        register={registerEditor}
       >
-        {editing && trigger && (
+        {focusedId === block.id && trigger && (
           <AutocompletePanel
             trigger={trigger}
             onPick={acceptCompletion}
@@ -538,8 +653,18 @@ export function OutlinePage({
   }
 
   const toolbarActions: ToolbarAction[] = [
-    { key: 'outdent', label: '⇤', title: 'Outdent', onPress: () => void doOutdent() },
-    { key: 'indent', label: '⇥', title: 'Indent', onPress: () => void doIndent() },
+    {
+      key: 'outdent',
+      label: '⇤',
+      title: 'Naikkan satu tingkat (anak ikut)',
+      onPress: () => void doOutdent(),
+    },
+    {
+      key: 'indent',
+      label: '⇥',
+      title: 'Jadikan anak bullet di atasnya (anak ikut)',
+      onPress: () => void doIndent(),
+    },
     { key: 'tag', label: '#', title: 'Sisip tag', onPress: () => insertAtCaret('#') },
     { key: 'category', label: '[ ]', title: 'Sisip kategori', onPress: () => insertAtCaret('[') },
     { key: 'link', label: '[[ ]]', title: 'Sisip wiki-link', onPress: () => insertAtCaret('[[') },
@@ -553,9 +678,9 @@ export function OutlinePage({
       },
     },
     {
-      key: 'promote',
+      key: 'blok',
       label: '★',
-      title: currentBlock?.is_promoted ? 'Batalkan promosi' : 'Jadikan blok',
+      title: currentBlock?.is_promoted ? 'Batalkan jadi blok' : 'Jadikan blok (wiki-link & drill)',
       active: currentBlock?.is_promoted === 1,
       onPress: () => {
         if (!currentBlock) return
@@ -568,7 +693,7 @@ export function OutlinePage({
 
   return (
     <div className="flex h-full flex-col">
-      <header className="shrink-0 border-b border-ink-faint/15 bg-paper/95 px-3 py-2 backdrop-blur">
+      <header className="shrink-0 border-b border-ink-faint/15 bg-paper/95 px-3 py-1.5 backdrop-blur">
         <div className="flex items-center gap-2">
           <div className="min-w-0 flex-1">
             {zoomId ? (
@@ -578,7 +703,7 @@ export function OutlinePage({
                   onClick={() => navigate({ zoom: null })}
                   className="underline underline-offset-2"
                 >
-                  {currentDocument?.title ?? 'Dokumen'}
+                  {currentDocument?.title ?? 'Catatan'}
                 </button>
                 {breadcrumb.slice(0, -1).map((ancestor) => (
                   <span key={ancestor.id} className="flex items-center gap-1">
@@ -594,9 +719,16 @@ export function OutlinePage({
                 ))}
               </nav>
             ) : (
-              <h1 className="truncate text-[17px] font-semibold">
-                {currentDocument?.title ?? 'Qnote'}
-              </h1>
+              <button
+                type="button"
+                onClick={() => setDocsOpen(true)}
+                className="flex min-w-0 items-center gap-1 text-left"
+              >
+                <span className="truncate text-[17px] font-semibold">
+                  {currentDocument?.title ?? 'Qnote'}
+                </span>
+                <span className="shrink-0 text-[11px] text-ink-faint">▾</span>
+              </button>
             )}
           </div>
 
@@ -604,14 +736,14 @@ export function OutlinePage({
             type="button"
             onClick={toggleAllCards}
             title="Ciutkan tampilan kartu ayat (anak tetap terlihat)"
-            className="tap-target rounded-lg px-2 text-[13px] text-ink-soft"
+            className="shrink-0 rounded-lg px-2 py-1.5 text-[13px] text-ink-soft"
           >
             {cardsCollapsed ? 'Buka kartu' : 'Tutup kartu'}
           </button>
         </div>
 
         {zoomBlock && (
-          <h2 className="mt-1 text-[16px] font-medium leading-snug">
+          <h2 className="mt-0.5 text-[16px] font-medium leading-snug">
             {zoomBlock.block_type === 'ayat'
               ? `QS ${zoomBlock.ayat_surah}:${zoomBlock.ayat_number}`
               : zoomBlock.content.trim() || 'Bullet kosong'}
@@ -619,13 +751,7 @@ export function OutlinePage({
         )}
       </header>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-2 pb-40 pt-2">
-        {nodes.length === 0 && (
-          <p className="px-4 py-8 text-center text-[14px] text-ink-faint">
-            Belum ada bullet di sini. Ketuk untuk mulai menulis.
-          </p>
-        )}
-
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-2 pb-40 pt-1">
         {virtualize ? (
           <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
             {virtualizer.getVirtualItems().map((item) => (
@@ -663,7 +789,7 @@ export function OutlinePage({
             type="button"
             onClick={() => {
               void commitNow().then(async () => {
-                const last = nodes[nodes.length - 1]
+                const last = nodesRef.current[nodesRef.current.length - 1]
                 if (!last) return
                 const created =
                   last.block.parent_id === rootId
@@ -672,7 +798,7 @@ export function OutlinePage({
                 if (created) focusBlock(created, 0)
               })
             }}
-            className="mt-2 w-full rounded-lg px-3 py-3 text-left text-[14px] text-ink-faint active:bg-paper-sunk"
+            className="mt-1 w-full rounded-lg px-3 py-3 text-left text-[14px] text-ink-faint active:bg-paper-sunk"
           >
             + bullet baru
           </button>
@@ -680,6 +806,20 @@ export function OutlinePage({
       </div>
 
       <MobileToolbar actions={toolbarActions} visible={focusedId !== null} />
+
+      <DocSwitcher
+        open={docsOpen}
+        activeId={documentId}
+        onClose={() => setDocsOpen(false)}
+        onPick={openDocument}
+        onCreated={(id) => {
+          // Bullet pertama dibuat oleh efek dokumen-kosong; tandai supaya
+          // langsung difokus begitu ia muncul — duduk di kajian lalu mengetik
+          // harus dua sentuhan, bukan tiga.
+          wantFirstBullet.current = true
+          openDocument(id)
+        }}
+      />
 
       <BlockMenu
         block={menuBlock}

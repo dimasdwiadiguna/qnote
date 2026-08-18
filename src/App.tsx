@@ -8,6 +8,7 @@ import { startAutoSync } from './sync/sync'
 import { buildSearchIndex, candidateBlocks } from './lib/search'
 import { useKeyboardInset } from './ui/hooks'
 import { useRoute, type ViewName } from './ui/router'
+import { NavIcon, type NavIconName } from './ui/NavIcon'
 import { SyncBadge } from './ui/SyncBadge'
 
 import { OutlinePage } from './features/outliner/OutlinePage'
@@ -17,13 +18,13 @@ import { DrillPage } from './features/drill/DrillPage'
 import { InspirasiPage } from './features/inspirasi/InspirasiPage'
 import { SettingsPage } from './features/settings/SettingsPage'
 
-const NAV: { view: ViewName; label: string; icon: string }[] = [
-  { view: 'outline', label: 'Tulis', icon: '✎' },
-  { view: 'search', label: 'Cari', icon: '⌕' },
-  { view: 'drill', label: 'Drill', icon: '◷' },
-  { view: 'inspirasi', label: 'Inspirasi', icon: '✦' },
-  { view: 'candidates', label: 'Kandidat', icon: '☆' },
-  { view: 'settings', label: 'Setelan', icon: '⚙' },
+const NAV: { view: ViewName; label: string; icon: NavIconName }[] = [
+  { view: 'outline', label: 'Tulis', icon: 'outline' },
+  { view: 'search', label: 'Cari', icon: 'search' },
+  { view: 'drill', label: 'Drill', icon: 'drill' },
+  { view: 'inspirasi', label: 'Inspirasi', icon: 'inspirasi' },
+  { view: 'candidates', label: 'Kandidat', icon: 'candidates' },
+  { view: 'settings', label: 'Setelan', icon: 'settings' },
 ]
 
 export function App(): JSX.Element {
@@ -128,14 +129,14 @@ export function App(): JSX.Element {
                 key={item.view}
                 type="button"
                 onClick={() => navigate({ view: item.view })}
-                className={`relative flex flex-1 flex-col items-center py-1.5 text-[10px] ${
-                  route.view === item.view ? 'text-accent' : 'text-ink-faint'
+                className={`relative flex min-h-[54px] flex-1 flex-col items-center justify-center gap-0.5 py-1 text-[11px] font-medium ${
+                  route.view === item.view ? 'text-accent' : 'text-ink-soft'
                 }`}
               >
-                <span className="text-[17px] leading-6">{item.icon}</span>
+                <NavIcon name={item.icon} />
                 {item.label}
                 {item.view === 'candidates' && (candidateCount ?? 0) > 0 && (
-                  <span className="absolute right-[18%] top-0.5 rounded-full bg-amber-500 px-1 text-[9px] font-semibold text-white">
+                  <span className="absolute right-[14%] top-1 min-w-[16px] rounded-full bg-amber-500 px-1 text-[10px] font-semibold leading-4 text-white">
                     {candidateCount}
                   </span>
                 )}

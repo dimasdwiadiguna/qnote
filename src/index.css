@@ -41,24 +41,80 @@
     font-size: 16px;
   }
 
-  textarea {
-    @apply bg-transparent;
-    field-sizing: content;
-  }
-
   button {
     touch-action: manipulation;
   }
 }
 
+/*
+ * ─────────────────────────────────────────────────────────────────────────────
+ * EDITOR BULLET — lapisan cermin + textarea transparan.
+ *
+ * Setiap baris punya textarea SUNGGUHAN yang selalu terpasang, supaya menyentuh
+ * bullet lain adalah perpindahan fokus native: tanpa JS, keyboard tidak pernah
+ * turun, dan kursor mendarat tepat di titik sentuh. Chip penanda digambar di
+ * lapisan cermin di BELAKANG textarea.
+ *
+ * ATURAN MUTLAK: `.bullet-text` harus punya metrik yang PERSIS SAMA di cermin
+ * dan di textarea — font, ukuran, line-height, padding, letter-spacing,
+ * pembungkusan kata. Selisih sepersekian piksel pun membuat kursor melenceng
+ * dari huruf yang terlihat. Karena itu chip di dalam editor hanya boleh
+ * mengubah WARNA, tidak pernah padding/ukuran/border.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
 @layer components {
-  .arabic {
-    font-family: theme('fontFamily.quran');
-    font-size: 1.6rem;
-    line-height: 2.4;
-    letter-spacing: 0;
+  .bullet-text {
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 1.45;
+    letter-spacing: normal;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    tab-size: 4;
+    margin: 0;
+    padding: 1px 0;
+    border: 0;
   }
 
+  .bullet-mirror {
+    @apply bullet-text pointer-events-none select-none text-ink;
+  }
+
+  .bullet-input {
+    @apply bullet-text absolute inset-0 h-full w-full resize-none overflow-hidden bg-transparent outline-none;
+    color: transparent;
+    /* Safari mengabaikan `color: transparent` pada textarea tanpa baris ini. */
+    -webkit-text-fill-color: transparent;
+    caret-color: #0f766e;
+  }
+
+  .bullet-input::selection {
+    background: rgb(15 118 110 / 0.22);
+  }
+
+  /* Chip DI DALAM editor: warna saja, nol dampak metrik. */
+  .mark {
+    border-radius: 3px;
+    padding: 0;
+    font-size: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+  }
+
+  .mark-tag {
+    @apply bg-amber-100 text-amber-900;
+  }
+
+  .mark-category {
+    @apply bg-accent-soft text-accent-ink;
+  }
+
+  .mark-link {
+    @apply bg-sky-100 text-sky-900;
+  }
+
+  /* Chip di layar BACA (cari, kandidat, inspirasi) — bebas berpadding. */
   .chip {
     @apply inline-flex items-center rounded px-1 text-[0.82em] font-medium leading-normal;
   }
@@ -78,6 +134,13 @@
 
   .chip-link {
     @apply bg-sky-100 text-sky-900 underline decoration-sky-300 underline-offset-2;
+  }
+
+  .arabic {
+    font-family: theme('fontFamily.quran');
+    font-size: 1.55rem;
+    line-height: 2.15;
+    letter-spacing: 0;
   }
 
   .tap-target {

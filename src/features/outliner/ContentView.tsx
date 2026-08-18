@@ -5,11 +5,13 @@ import type { CategoryAssignment } from '../../lib/inherit'
 /**
  * Tampilan baca sebuah bullet.
  *
- * PENTING: seluruh karakter `content` dirender apa adanya — termasuk `#`, `[`,
- * `]`. Penanda hanya diberi warna, tidak disembunyikan. Alasannya bukan estetika
- * tapi mekanik: pemetaan titik-sentuh → posisi kursor (`offsetFromPoint`)
- * mengandalkan teks tampil identik dengan teks mentah. Menyembunyikan kurung
- * akan menggeser kursor tiap kali ada penanda di depannya.
+ * Dipakai HANYA di layar baca: hasil pencarian, Kandidat, Inspirasi, Drill.
+ * Bullet yang bisa diedit memakai lapisan cermin di dalam BlockEditor, yang
+ * chip-nya wajib bermetrik nol; di sini chip bebas berpadding karena tidak ada
+ * kursor yang harus disejajarkan.
+ *
+ * Seluruh karakter `content` tetap dirender apa adanya — termasuk `#`, `[`, `]`
+ * — supaya yang terlihat di layar baca sama dengan yang diketik.
  */
 
 export interface ContentViewProps {
@@ -68,49 +70,3 @@ export const ContentView = memo(function ContentView({
     </div>
   )
 })
-
-/**
- * Memetakan titik sentuh ke offset karakter di dalam `content`.
- * Dipakai agar mengetuk di tengah kalimat menaruh kursor di sana — bukan di
- * akhir baris seperti kebanyakan outliner web.
- */
-export function offsetFromPoint(container: HTMLElement, x: number, y: number): number | null {
-  let node: Node | null = null
-  let offset = 0
-
-  const doc = container.ownerDocument
-  type LegacyDocument = Document & {
-    caretRangeFromPoint?: (x: number, y: number) => Range | null
-    caretPositionFromPoint?: (
-      x: number,
-      y: number,
-    ) => { offsetNode: Node; offset: number } | null
-  }
-  const legacy = doc as LegacyDocument
-
-  if (typeof legacy.caretRangeFromPoint === 'function') {
-    const range = legacy.caretRangeFromPoint(x, y)
-    if (range) {
-      node = range.startContainer
-      offset = range.startOffset
-    }
-  } else if (typeof legacy.caretPositionFromPoint === 'function') {
-    const position = legacy.caretPositionFromPoint(x, y)
-    if (position) {
-      node = position.offsetNode
-      offset = position.offset
-    }
-  }
-
-  if (!node || !container.contains(node)) return null
-
-  const walker = doc.createTreeWalker(container, NodeFilter.SHOW_TEXT)
-  let total = 0
-  let current = walker.nextNode()
-  while (current) {
-    if (current === node) return total + offset
-    total += current.textContent?.length ?? 0
-    current = walker.nextNode()
-  }
-  return total
-}

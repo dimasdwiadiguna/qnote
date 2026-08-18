@@ -1,64 +1,61 @@
 import { memo, useRef } from 'react'
-import type { Ayat, Block, SurahMeta } from '../../db/types'
+import type { Ayat, SurahMeta } from '../../db/types'
 import type { CategoryAssignment } from '../../lib/inherit'
 import type { FlatNode } from '../../lib/tree'
 import { AyatCard } from './AyatCard'
 import { BlockEditor, type BlockEditorHandle } from './BlockEditor'
-import { ContentView, offsetFromPoint } from './ContentView'
 import { formatReference } from '../../lib/ayatSearch'
 
 /**
  * Satu baris outline. Blok `'ayat'` adalah warga kelas satu di sini: struktur
- * baris, indentasi, collapse, dan promosi identik dengan blok `'text'` — yang
- * berbeda hanya isi area kontennya (kartu + baris anotasi).
+ * baris, indentasi, collapse, dan status blok identik dengan blok `'text'` —
+ * yang berbeda hanya isi area kontennya (kartu + baris anotasi).
+ *
+ * Baris ini SELALU memasang textarea, bahkan saat tidak difokus (lihat
+ * BlockEditor). Itu yang membuat pindah bullet di HP tidak menurunkan keyboard.
  */
 
-const INDENT_PX = 18
+const INDENT_PX = 15
 const LONG_PRESS_MS = 450
 
 export interface BlockRowProps {
   node: FlatNode
   categories: CategoryAssignment
-  editing: boolean
   ayat: Ayat | undefined
   surah: SurahMeta | undefined
   ayatCardCollapsed: boolean
-  editorRef: React.Ref<BlockEditorHandle>
-  caretRequest: number | null
-  onBeginEdit: (block: Block, caret: number) => void
   onZoom: (blockId: string) => void
   onToggleCollapse: (blockId: string) => void
   onToggleAyatCard: (blockId: string) => void
   onOpenMenu: (blockId: string) => void
-  onInput: (value: string, caret: number) => void
-  onKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void
-  onBlur: () => void
-  onCaretMove: (caret: number) => void
+  onInput: (blockId: string, value: string, caret: number) => void
+  onKeyDown: (blockId: string, event: React.KeyboardEvent<HTMLTextAreaElement>) => void
+  onFocus: (blockId: string) => void
+  onBlur: (blockId: string) => void
+  onCaretMove: (blockId: string, caret: number) => void
+  register: (blockId: string, handle: BlockEditorHandle | null) => void
   children?: React.ReactNode
 }
 
 export const BlockRow = memo(function BlockRow({
   node,
   categories,
-  editing,
   ayat,
   surah,
   ayatCardCollapsed,
-  editorRef,
-  caretRequest,
-  onBeginEdit,
   onZoom,
   onToggleCollapse,
   onToggleAyatCard,
   onOpenMenu,
   onInput,
   onKeyDown,
+  onFocus,
   onBlur,
   onCaretMove,
+  register,
   children,
 }: BlockRowProps) {
   const { block, depth, hasChildren, hiddenCount } = node
-  const viewRef = useRef<HTMLDivElement>(null)
   const pressTimer = useRef<number | null>(null)
   const longPressed = useRef(false)
 
@@ -89,25 +86,30 @@ export const BlockRow = memo(function BlockRow({
       style={{ paddingLeft: depth * INDENT_PX }}
       data-block-id={block.id}
     >
-      <div className="flex items-start gap-1">
+      <div className="flex items-start gap-0.5">
         {/* Panah collapse — terpisah dari bullet supaya keduanya bisa disentuh
             dengan jempol tanpa saling menyerempet. */}
         <button
           type="button"
           aria-label={block.is_collapsed ? 'Buka' : 'Ciutkan'}
+          onPointerDown={(event) => event.preventDefault()}
           onClick={() => hasChildren && onToggleCollapse(block.id)}
-          className={`mt-[3px] h-6 w-4 shrink-0 text-[11px] leading-6 text-ink-faint ${
+          className={`mt-px h-6 w-4 shrink-0 text-[11px] leading-6 text-ink-faint ${
             hasChildren ? 'visible' : 'invisible'
           }`}
         >
           {block.is_collapsed ? '▸' : '▾'}
         </button>
 
-        {/* Bullet: tap = zoom-in, tahan = menu. */}
+        {/* Bullet: tap = zoom-in, tahan = menu. `preventDefault` menjaga fokus
+            tetap di textarea yang sedang aktif supaya keyboard tidak turun. */}
         <button
           type="button"
           aria-label="Zoom ke bullet ini"
-          onPointerDown={startPress}
+          onPointerDown={(event) => {
+            event.preventDefault()
+            startPress()
+          }}
           onPointerUp={() => {
             endPress()
             if (!longPressed.current) onZoom(block.id)
@@ -118,7 +120,7 @@ export const BlockRow = memo(function BlockRow({
             event.preventDefault()
             onOpenMenu(block.id)
           }}
-          className="mt-[7px] h-4 w-4 shrink-0"
+          className="mt-[5px] h-4 w-4 shrink-0"
         >
           <span
             className={`mx-auto block rounded-full ${
@@ -129,7 +131,7 @@ export const BlockRow = memo(function BlockRow({
           />
         </button>
 
-        <div className="relative min-w-0 flex-1 pb-1">
+        <div className="relative min-w-0 flex-1">
           {isAyat && (
             <div className="mb-1">
               <AyatCard
@@ -142,43 +144,40 @@ export const BlockRow = memo(function BlockRow({
             </div>
           )}
 
-          {editing ? (
-            <BlockEditor
-              ref={editorRef}
-              blockId={block.id}
-              initialValue={block.content}
-              placeholder={isAyat ? 'Anotasi…' : 'Tulis di sini…'}
-              autoFocusCaret={caretRequest}
-              onInput={onInput}
-              onKeyDown={onKeyDown}
-              onBlur={onBlur}
-              onCaretMove={onCaretMove}
-            />
-          ) : (
-            <div
-              ref={viewRef}
-              onPointerUp={(event) => {
-                const container = viewRef.current
-                if (!container) return
-                const caret = offsetFromPoint(container, event.clientX, event.clientY)
-                onBeginEdit(block, caret ?? block.content.length)
-              }}
-              className="min-h-[26px] cursor-text"
-            >
-              <ContentView
-                content={block.content}
-                categories={categories}
-                placeholder={isAyat ? 'Anotasi…' : 'Tulis di sini…'}
-                muted={isAyat}
-              />
+          <BlockEditor
+            blockId={block.id}
+            value={block.content}
+            placeholder={isAyat ? 'Anotasi…' : ''}
+            onInput={onInput}
+            onKeyDown={onKeyDown}
+            onFocus={onFocus}
+            onBlur={onBlur}
+            onCaretMove={onCaretMove}
+            register={register}
+          />
+
+          {/* Kategori warisan hidup DI LUAR cermin editor: chip berpadding di
+              dalam cermin akan menggeser metrik teks dan melencengkan kursor. */}
+          {categories.inherited.length > 0 && (
+            <div className="-mt-0.5 flex flex-wrap gap-1">
+              {categories.inherited.map((path) => (
+                <span
+                  key={path}
+                  className="chip chip-inherited"
+                  title={`Kategori warisan dari leluhur: ${path}`}
+                >
+                  {path}
+                </span>
+              ))}
             </div>
           )}
 
           {hiddenCount > 0 && (
             <button
               type="button"
+              onPointerDown={(event) => event.preventDefault()}
               onClick={() => onToggleCollapse(block.id)}
-              className="mt-0.5 text-[12px] text-ink-faint"
+              className="text-[12px] text-ink-faint"
             >
               +{hiddenCount} tersembunyi
             </button>

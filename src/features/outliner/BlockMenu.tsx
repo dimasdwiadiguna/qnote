@@ -5,10 +5,15 @@ import type { Block } from '../../db/types'
 /**
  * Menu long-press sebuah bullet.
  *
- * "Jadikan blok" adalah SATU-SATUNYA jalan promosi (brief §2.4) — tidak ada
- * promosi otomatis karena sebuah bullet kebetulan punya tag atau ayat. Promosi
- * hanya mengubah flag `is_promoted`; tidak ada data yang berpindah dan bisa
- * dibatalkan kapan saja.
+ * "Jadikan blok" adalah SATU-SATUNYA jalannya (brief §2.4) — tidak pernah
+ * otomatis karena sebuah bullet kebetulan punya tag atau ayat. Yang berubah
+ * hanya flag `is_promoted`; tidak ada data yang berpindah, dan bisa dibatalkan
+ * kapan saja.
+ *
+ * ISTILAH: di UI kata "promosi" sengaja DIHINDARI. Pada outliner, promote/demote
+ * berarti outdent/indent, jadi memakainya untuk `is_promoted` membuat tombol ★
+ * terbaca seolah memindahkan bullet. Naik/turun tingkat adalah ⇤/⇥; ★ adalah
+ * "jadikan blok".
  */
 
 export interface BlockMenuProps {
@@ -75,7 +80,7 @@ export function BlockMenu({
         </p>
 
         <MenuItem
-          label={promoted ? 'Batalkan promosi' : 'Jadikan blok'}
+          label={promoted ? 'Batalkan jadi blok' : 'Jadikan blok'}
           hint={
             promoted
               ? 'Berhenti jadi target wiki-link, backlink, dan antrian drill'

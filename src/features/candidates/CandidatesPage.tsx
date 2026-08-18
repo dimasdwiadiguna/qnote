@@ -34,7 +34,7 @@ export function CandidatesPage({
       <header className="shrink-0 border-b border-ink-faint/15 px-3 py-2">
         <h1 className="text-[17px] font-semibold">Kandidat</h1>
         <p className="mt-0.5 text-[12px] text-ink-soft">
-          Bullet bertanda yang belum dipromosikan jadi blok.
+          Bullet bertanda yang belum dijadikan blok.
         </p>
         <div className="mt-2 flex gap-1.5 text-[12px]">
           {(['semua', 'ayat', 'tag'] as const).map((value) => (
