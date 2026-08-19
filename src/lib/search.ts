@@ -113,6 +113,12 @@ export interface SearchFilters {
   includeInherited: boolean
   promotedOnly: boolean
   ayatOnly: boolean
+  /**
+   * Hanya bullet bertanda yang BELUM dijadikan blok — layar "Kandidat" lama,
+   * kini hidup sebagai chip saring di sini. Predikatnya dipakai bersama
+   * `candidateBlocks()` supaya keduanya tidak bisa berbeda diam-diam.
+   */
+  candidatesOnly: boolean
 }
 
 export const EMPTY_FILTERS: SearchFilters = {
@@ -123,6 +129,7 @@ export const EMPTY_FILTERS: SearchFilters = {
   includeInherited: true,
   promotedOnly: false,
   ayatOnly: false,
+  candidatesOnly: false,
 }
 
 export function effectivePaths(
@@ -133,6 +140,17 @@ export function effectivePaths(
   return includeInherited ? [...assignment.direct, ...assignment.inherited] : assignment.direct
 }
 
+/**
+ * Bullet yang punya tag / kategori langsung / ayat, tapi BELUM dijadikan blok.
+ * Satu definisi, dipakai oleh chip saring di Cari dan oleh `candidateBlocks()`.
+ */
+export function isCandidate(block: Block, index: SearchIndex): boolean {
+  if (block.is_promoted) return false
+  const tags = index.tagsByBlock.get(block.id) ?? []
+  const assignment = index.categories.get(block.id) ?? { direct: [], inherited: [] }
+  return tags.length > 0 || assignment.direct.length > 0 || block.block_type === 'ayat'
+}
+
 function matchesFilters(
   block: Block,
   index: SearchIndex,
@@ -141,6 +159,7 @@ function matchesFilters(
 ): boolean {
   if (filters.promotedOnly && !block.is_promoted) return false
   if (filters.ayatOnly && block.block_type !== 'ayat') return false
+  if (filters.candidatesOnly && !isCandidate(block, index)) return false
 
   if (needle.length > 0 && !block.search_norm.includes(needle)) return false
 
@@ -197,12 +216,9 @@ export function searchBlocks(
 export function candidateBlocks(index: SearchIndex, limit = 300): BlockHit[] {
   const out: BlockHit[] = []
   for (const block of index.blocks) {
-    if (block.is_promoted) continue
+    if (!isCandidate(block, index)) continue
     const tags = index.tagsByBlock.get(block.id) ?? []
     const assignment = index.categories.get(block.id) ?? { direct: [], inherited: [] }
-    const qualifies =
-      tags.length > 0 || assignment.direct.length > 0 || block.block_type === 'ayat'
-    if (!qualifies) continue
     out.push({
       block,
       documentTitle: index.documentTitles.get(block.document_id) ?? 'Tanpa judul',

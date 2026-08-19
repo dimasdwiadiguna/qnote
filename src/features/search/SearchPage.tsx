@@ -109,6 +109,13 @@ export function SearchPage({
             active={filters.ayatOnly}
             onPress={() => setFilters((p) => ({ ...p, ayatOnly: !p.ayatOnly }))}
           />
+          <Toggle
+            label="kandidat"
+            active={filters.candidatesOnly}
+            onPress={() =>
+              setFilters((p) => ({ ...p, candidatesOnly: !p.candidatesOnly }))
+            }
+          />
         </div>
 
         {index && index.allCategories.length > 0 && (

@@ -11,6 +11,7 @@ import { useRoute, type ViewName } from './ui/router'
 import { NavIcon, type NavIconName } from './ui/NavIcon'
 import { SyncBadge } from './ui/SyncBadge'
 
+import { QuranPage } from './features/quran/QuranPage'
 import { OutlinePage } from './features/outliner/OutlinePage'
 import { CandidatesPage } from './features/candidates/CandidatesPage'
 import { SearchPage } from './features/search/SearchPage'
@@ -18,13 +19,21 @@ import { DrillPage } from './features/drill/DrillPage'
 import { InspirasiPage } from './features/inspirasi/InspirasiPage'
 import { SettingsPage } from './features/settings/SettingsPage'
 
+/**
+ * Lima tab, bukan tujuh. Kandidat pindah jadi chip saring di dalam Cari (layar
+ * itu memang sudah berupa pencarian tersimpan), dan Setelan pindah ke gerigi di
+ * header. Keduanya layar berfrekuensi rendah; menambah tab ke-7 hanya akan
+ * memperkecil setiap tab di layar 390px.
+ *
+ * Rute `?v=candidates` dan `?v=settings` tetap hidup supaya tautan lama tidak
+ * mati — yang berubah hanya jalan masuknya.
+ */
 const NAV: { view: ViewName; label: string; icon: NavIconName }[] = [
+  { view: 'quran', label: "Qur'an", icon: 'quran' },
   { view: 'outline', label: 'Tulis', icon: 'outline' },
   { view: 'search', label: 'Cari', icon: 'search' },
   { view: 'drill', label: 'Drill', icon: 'drill' },
   { view: 'inspirasi', label: 'Inspirasi', icon: 'inspirasi' },
-  { view: 'candidates', label: 'Kandidat', icon: 'candidates' },
-  { view: 'settings', label: 'Setelan', icon: 'settings' },
 ]
 
 export function App(): JSX.Element {
@@ -76,7 +85,8 @@ export function App(): JSX.Element {
   }, [])
 
   const candidateCount = useLiveQuery(async () => {
-    // Badge kecil di navigasi supaya layar Kandidat tidak terlupakan (risiko R13).
+    // Lencana di tab Cari — tempat Kandidat sekarang tinggal sebagai chip saring.
+    // Tanpa ini daftar tinjau gampang terlupakan (risiko R13).
     const blocks = await db.blocks.count()
     if (blocks === 0) return 0
     const index = await buildSearchIndex()
@@ -97,7 +107,19 @@ export function App(): JSX.Element {
         <span className="py-1 text-[11px] font-semibold uppercase tracking-widest text-accent">
           Qnote
         </span>
-        <SyncBadge />
+        <div className="flex items-center gap-1">
+          <SyncBadge />
+          <button
+            type="button"
+            aria-label="Setelan"
+            onClick={() => navigate({ view: 'settings' })}
+            className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+              route.view === 'settings' ? 'text-accent' : 'text-ink-faint'
+            }`}
+          >
+            <NavIcon name="settings" />
+          </button>
+        </div>
       </div>
 
       {seedProgress && (
@@ -108,6 +130,7 @@ export function App(): JSX.Element {
       )}
 
       <main className="min-h-0 flex-1">
+        {route.view === 'quran' && <QuranPage route={route} navigate={navigate} />}
         {route.view === 'outline' && (
           <OutlinePage route={route} navigate={navigate} onEditingChange={setEditing} />
         )}
@@ -135,7 +158,7 @@ export function App(): JSX.Element {
               >
                 <NavIcon name={item.icon} />
                 {item.label}
-                {item.view === 'candidates' && (candidateCount ?? 0) > 0 && (
+                {item.view === 'search' && (candidateCount ?? 0) > 0 && (
                   <span className="absolute right-[14%] top-1 min-w-[16px] rounded-full bg-amber-500 px-1 text-[10px] font-semibold leading-4 text-white">
                     {candidateCount}
                   </span>

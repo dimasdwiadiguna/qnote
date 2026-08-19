@@ -8,6 +8,7 @@
  */
 
 export type NavIconName =
+  | 'quran'
   | 'outline'
   | 'search'
   | 'drill'
@@ -16,6 +17,16 @@ export type NavIconName =
   | 'settings'
 
 const PATHS: Record<NavIconName, JSX.Element> = {
+  // Mushaf terbuka: dua halaman dengan punggung di tengah.
+  quran: (
+    <>
+      <path
+        d="M12 6.6C10.4 5.2 8.3 4.5 5.6 4.5c-.8 0-1.4.6-1.4 1.4v10.7c0 .8.6 1.4 1.4 1.4 2.7 0 4.8.7 6.4 2.1 1.6-1.4 3.7-2.1 6.4-2.1.8 0 1.4-.6 1.4-1.4V5.9c0-.8-.6-1.4-1.4-1.4-2.7 0-4.8.7-6.4 2.1Z"
+        strokeLinejoin="round"
+      />
+      <path d="M12 6.6v13.5" strokeLinecap="round" />
+    </>
+  ),
   outline: (
     <>
       <circle cx="5" cy="6" r="1.6" />

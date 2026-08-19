@@ -15,7 +15,7 @@ Offline-first, dirancang untuk dipakai **satu tangan di HP** sambil duduk di kaj
 ```bash
 npm install
 npm run dev          # http://localhost:5173
-npm test             # 86 unit test (parser, normalisasi, pohon, drill)
+npm test             # 112 unit test (parser, normalisasi, pohon, drill, pilihan ayat, repo)
 npm run build        # tsc -b && vite build → dist/
 ```
 
@@ -159,7 +159,7 @@ src/
   lib/       Logika murni tanpa I/O — parser, normalisasi, pohon, pewarisan,
              pencarian, antrian drill  ← semua unit test ada di sini
   sync/      Klien Supabase, push outbox, pull delta, LWW per baris
-  features/  Satu folder per layar
+  features/  Satu folder per layar (quran/, outliner/, search/, drill/, …)
   ui/        Router, hook, komponen bersama
 supabase/schema.sql   Skema Postgres + RLS
 scripts/fetch-quran.mjs   Regenerasi data ayat (manual, saat build)
@@ -172,6 +172,20 @@ alasan dan jalan mundurnya).
 ---
 
 ## Cara pakai singkat
+
+**Qur'an** — tab pertama. Cari surah (atau ketik `2:153`, atau potongan
+terjemah), baca, lalu **ketuk ayat untuk memilih** dan **tahan untuk memilih
+rentang**. Tekan `Catat` untuk menulis anotasi dan menyimpannya ke salah satu
+catatan. Ayat yang sudah punya catatan diberi lencana, dan lencananya bisa
+disentuh untuk melompat ke catatan itu — jadi pembaca sekaligus indeks dua arah.
+
+Satu ayat → anotasi menempel pada kartu ayat itu. Beberapa ayat → anotasi jadi
+bullet induk dengan ayat-ayatnya sebagai anak, yang berarti drill Mode A
+langsung mengenalinya begitu induknya di-★.
+
+> Tidak ada halaman mushaf (604 halaman) maupun navigasi juz: data ayat yang
+> dipakai tidak memuat nomor halaman. Penggantinya gulir menerus per surah plus
+> "Lanjutkan bacaan".
 
 **Catatan (docs)** — sentuh judul di atas untuk berpindah catatan, membuat
 catatan baru (langsung siap diketik), mengubah judul, atau menghapusnya. Tiap
@@ -197,7 +211,8 @@ selalu ikut** · `#` `[ ]` `[[ ]]` penanda · `+ ayat` sisip ayat · `★` jadik
 **Jadikan blok** (★) adalah flag, bukan pemindahan data — bisa dibatalkan kapan saja. Yang
 dibuka hanya tiga hal: blok bisa jadi target `[[wiki-link]]`, punya panel backlink, dan
 masuk antrian drill. Tag dan kategori tetap terindeks di **semua** bullet tanpa promosi.
-Layar **Kandidat** menampilkan bullet bertanda yang belum dijadikan blok.
+Chip **kandidat** di layar Cari menampilkan bullet bertanda yang belum
+dijadikan blok — daftar tinjau berkala. Lencana angka di tab Cari menghitungnya.
 
 **Drill** memakai FSRS dengan self-rating (Again/Hard/Good/Easy). Tiga mode dijadwalkan
 terpisah: **A** tema → ayat, **B** cloze Arab bertahap, **C** terjemah → rujukan.

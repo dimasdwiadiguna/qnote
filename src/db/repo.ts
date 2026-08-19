@@ -503,6 +503,84 @@ export async function mergeIntoPrevious(
 // ── ayat ──────────────────────────────────────────────────────────────────────
 
 /**
+ * Menyimpan anotasi atas satu atau beberapa ayat, dari layar pembaca Qur'an.
+ *
+ * Bentuk yang dipilih sengaja TIDAK menambah kolom apa pun:
+ *
+ *   satu ayat      → satu blok 'ayat', anotasi masuk ke `content`-nya
+ *                    (persis pola kartu ayat + baris anotasi yang sudah ada)
+ *
+ *   banyak ayat    → satu blok 'text' berisi anotasi sebagai INDUK,
+ *                    dengan N blok 'ayat' sebagai anaknya
+ *
+ * Kenapa bukan rentang (`ayat_number_end`): rentang akan merusak identitas kartu
+ * drill yang berbasis satu ayat (`"2:153"`), dan menambah kolom berarti migrasi
+ * di Dexie maupun Postgres. Dengan bentuk induk–anak, aturan keterkaitan drill
+ * Mode A (parent–anak LANGSUNG) langsung berlaku tanpa satu baris kode baru.
+ *
+ * Disisipkan di akhir akar dokumen tujuan.
+ */
+export async function appendAyatNote(
+  documentId: string,
+  refs: readonly { surah: number; number: number }[],
+  annotation: string,
+): Promise<string | null> {
+  if (refs.length === 0) return null
+
+  return rw(async () => {
+    const roots = await childrenOf(documentId, ROOT)
+    let previousKey = roots[roots.length - 1]?.order_key ?? null
+
+    // Satu ayat: anotasi jadi milik blok ayat itu sendiri.
+    if (refs.length === 1) {
+      const only = refs[0] as { surah: number; number: number }
+      const block = makeBlock({
+        documentId,
+        parentId: ROOT,
+        orderKey: keyBetween(previousKey, null),
+        blockType: 'ayat',
+        content: annotation,
+        ayatSurah: only.surah,
+        ayatNumber: only.number,
+      })
+      await db.blocks.put(block)
+      await enqueue('blocks', block.id)
+      if (annotation.trim().length > 0) await reindexBlock(block.id)
+      return block.id
+    }
+
+    // Banyak ayat: induk teks + anak-anak ayat.
+    const parent = makeBlock({
+      documentId,
+      parentId: ROOT,
+      orderKey: keyBetween(previousKey, null),
+      content: annotation,
+    })
+    await db.blocks.put(parent)
+    await enqueue('blocks', parent.id)
+    if (annotation.trim().length > 0) await reindexBlock(parent.id)
+
+    previousKey = null
+    for (const ref of refs) {
+      const child = makeBlock({
+        documentId,
+        parentId: parent.id,
+        orderKey: keyBetween(previousKey, null),
+        blockType: 'ayat',
+        ayatSurah: ref.surah,
+        ayatNumber: ref.number,
+      })
+      await db.blocks.put(child)
+      await enqueue('blocks', child.id)
+      previousKey = child.order_key
+    }
+
+    return parent.id
+  })
+}
+
+
+/**
  * Menyisipkan blok ayat pada posisi kursor: SEJAJAR dengan bullet aktif, bukan
  * dipaksa jadi anak (brief §5). Bila bullet aktif masih kosong dan bertipe
  * teks, blok itu dikonversi di tempat supaya tidak meninggalkan bullet yatim.
