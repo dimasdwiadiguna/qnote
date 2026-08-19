@@ -80,6 +80,12 @@ export const META = {
   lastSyncedAt: 'sync:lastSyncedAt',
   lastDocumentId: 'ui:lastDocumentId',
   ayatCardsCollapsed: 'ui:ayatCardsCollapsed',
+  /** Posisi baca terakhir di layar Qur'an, mis. "2:153". */
+  lastRead: 'ui:lastRead',
+  /** Catatan tujuan terakhir saat menyimpan anotasi dari pembaca. */
+  lastNoteTarget: 'ui:lastNoteTarget',
+  /** Petunjuk ketuk/tahan di pembaca sudah ditutup. */
+  readerHintDismissed: 'ui:readerHintDismissed',
   conflictLog: 'sync:conflictLog',
 } as const
 

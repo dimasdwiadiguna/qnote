@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from 'react'
  */
 
 export type ViewName =
+  | 'quran'
   | 'outline'
   | 'candidates'
   | 'search'
@@ -20,9 +21,14 @@ export interface Route {
   zoom: string | null
   /** Blok yang ingin difokuskan setelah pindah layar (mis. dari hasil cari). */
   focus: string | null
+  /** Surah yang sedang dibaca di layar Qur'an; null = indeks surah. */
+  surah: number | null
+  /** Ayat yang ingin digulir ke tampilan saat membuka surah. */
+  ayat: number | null
 }
 
 const VIEWS: ReadonlySet<string> = new Set([
+  'quran',
   'outline',
   'candidates',
   'search',
@@ -39,7 +45,16 @@ export function readRoute(): Route {
     documentId: params.get('doc'),
     zoom: params.get('zoom'),
     focus: params.get('focus'),
+    surah: readNumber(params.get('surah'), 1, 114),
+    ayat: readNumber(params.get('ayat'), 1, 286),
   }
+}
+
+function readNumber(raw: string | null, min: number, max: number): number | null {
+  if (!raw) return null
+  const value = Number(raw)
+  if (!Number.isInteger(value) || value < min || value > max) return null
+  return value
 }
 
 function toSearch(route: Route): string {
@@ -48,6 +63,8 @@ function toSearch(route: Route): string {
   if (route.documentId) params.set('doc', route.documentId)
   if (route.zoom) params.set('zoom', route.zoom)
   if (route.focus) params.set('focus', route.focus)
+  if (route.surah) params.set('surah', String(route.surah))
+  if (route.ayat) params.set('ayat', String(route.ayat))
   const query = params.toString()
   return query ? `?${query}` : window.location.pathname
 }

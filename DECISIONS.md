@@ -249,3 +249,75 @@ naik ke 11px dan tinggi sentuh ke 54px.
 `line-height` 1.65 → 1.45, indentasi 18 → 15 px, padding baris dipangkas, dan
 kartu ayat sedikit lebih rapat. Bullet yang tadinya memakan ~42 px kini ~32 px,
 jadi satu layar HP memuat sekitar sepertiga lebih banyak catatan.
+
+---
+
+# Putaran 3 — layar Qur'an
+
+## D28 — Anotasi banyak ayat = induk teks + anak ayat, bukan rentang
+
+Memilih beberapa ayat di pembaca lalu mencatatnya bisa dimodelkan dua cara:
+menambah `ayat_number_end` pada blok ayat, atau membuat satu blok teks sebagai
+induk dengan N blok ayat sebagai anaknya. Dipilih yang kedua.
+
+Alasannya bukan selera:
+
+- **Nol perubahan skema.** Tidak ada migrasi Dexie, tidak ada kolom baru di
+  Postgres, sync tidak tersentuh sama sekali.
+- **Aturan drill Mode A langsung berlaku.** Keterkaitan ayat↔blok didefinisikan
+  sebagai parent–anak LANGSUNG (brief §7), jadi induk itu otomatis terkait
+  dengan ketiga ayatnya tanpa satu baris kode keterkaitan baru. Diverifikasi di
+  browser: mempromosikan induk lalu membuka Mode A menampilkan tepat 3 ayat.
+- **Identitas kartu drill tetap utuh.** Mode B dan C berkunci `"2:153"` per
+  ayat; rentang akan membuat satu kartu mewakili beberapa ayat dan merusak
+  penjadwalan yang sudah berjalan.
+- Induk itu juga persis jenis bullet yang pantas di-★ — ini yang akhirnya
+  memberi "jadikan blok" pekerjaan yang konkret.
+
+Satu ayat tetap memakai pola lama: anotasi masuk ke `content` blok ayat itu
+sendiri, tanpa induk pembungkus.
+
+## D29 — Tanpa halaman mushaf dan tanpa juz
+
+Permintaannya "baca seperti mushaf, per halaman". Tabel `ayat` hanya berisi
+`surah`, `number`, `arabic`, `translation_id` — **tidak ada nomor halaman dan
+tidak ada juz**, dan dataset sumbernya pun tidak memuatnya.
+
+Halaman mushaf sungguhan bukan sekadar kolom tambahan: perlu pemetaan
+halaman + baris per ayat, dan font yang metriknya akurat per halaman, supaya
+potongan barisnya sama dengan cetakan. Itu proyek tersendiri yang dimulai dari
+menyediakan datanya, bukan dari kode.
+
+Penggantinya: gulir menerus per surah, dengan posisi baca terakhir disimpan di
+`meta` (`ui:lastRead`) dan ditawarkan sebagai "Lanjutkan bacaan". Kalau nanti
+halaman sungguhan diinginkan, jalur upgrade-nya jelas: tambah kolom `page` di
+tabel `ayat` saat seed, lalu ganti pengelompokan daftar — struktur pemilihan dan
+anotasi tidak perlu berubah.
+
+## D30 — Baris pembaca bukan `AyatCard`
+
+`AyatCard` dirancang sebagai kartu DI DALAM outline: berbingkai, punya tombol
+ciut, punya baris anotasi di bawahnya. Di pembaca semua itu justru mengganggu —
+yang dibutuhkan baris ramping yang bisa disentuh sebagai satu unit. Yang dipakai
+ulang adalah kelas `.arabic` beserta aturan bidi-nya (Arab dan Latin tidak
+pernah dalam satu node teks).
+
+## D31 — Ketuk memilih, tahan memilih rentang
+
+Ketuk = pilih/batal (gestur yang sama untuk kedua arah, jadi salah sentuh tidak
+merugikan). Tahan = pilih rentang dari ayat terpilih terakhir. Long-press sudah
+jadi idiom di app ini (menu bullet di outliner), jadi tidak menambah kosakata
+gestur baru. Rentang bekerja dua arah — menahan ayat DI ATAS jangkar memilih ke
+atas — dan tidak pernah terbentuk lintas surah.
+
+Logikanya murni di `src/lib/ayatSelection.ts` supaya bisa diuji tanpa DOM; 18
+unit test menutup rentang mundur, lompatan, dan kunci tidak sah.
+
+## D32 — Navigasi jadi 5 tab
+
+Menambah Qur'an sebagai tab ke-7 akan memperkecil setiap tab di layar 390px —
+memperburuk keluhan yang baru saja diperbaiki. Kandidat pindah jadi chip saring
+di dalam Cari (layar itu memang sudah berupa pencarian tersimpan; predikatnya
+kini satu fungsi `isCandidate()` yang dipakai bersama), dan Setelan pindah ke
+gerigi di header. Rute `?v=candidates` dan `?v=settings` tetap hidup supaya
+tautan lama tidak mati.
